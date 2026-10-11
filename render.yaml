@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: lifetrace-ai
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: FLASK_ENV
+        value: production
+      - key: TIMEZONE
+        value: Asia/Kolkata
+      - key: CURRENCY_SYMBOL
+        value: ₹
+      - key: SCHEDULER_API_ENABLED
+        value: "true"
