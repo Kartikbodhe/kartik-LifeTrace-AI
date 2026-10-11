@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}LifeTrace AI — Your Personal Memory & Smart Reminder Assistant{% endblock %}
+
+{% block public_content %}
+<div class="landing-hero">
+  <div class="hero-pill">
+    <span>✨</span>
+    <span>Intelligent Productivity & Personal Recall System</span>
+  </div>
+
+  <h1 class="hero-title">
+    Never Forget What Truly Matters. <br>
+    <span>Meet LifeTrace AI.</span>
+  </h1>
+
+  <p class="hero-lead">
+    Your all-in-one assistant for tasks, money lent or borrowed, personal promises,
+    college milestones, renewal dates, and automated reminders.
+  </p>
+
+  <div class="hero-buttons">
+    <a href="{{ url_for('auth.register') }}" class="btn btn-primary" style="padding: 0.8rem 1.8rem; font-size: 1rem;">
+      Create Free Account 🚀
+    </a>
+    <a href="{{ url_for('auth.login') }}" class="btn btn-secondary" style="padding: 0.8rem 1.8rem; font-size: 1rem;">
+      Sign In
+    </a>
+    <form action="{{ url_for('auth.dev_demo_login') }}" method="POST" style="display: inline;">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button type="submit" class="btn btn-secondary" style="padding: 0.8rem 1.5rem; font-size: 1rem; border-color: rgba(99, 102, 241, 0.4);">
+        ⚡ Try Demo Account
+      </button>
+    </form>
+  </div>
+</div>
+
+<div class="content-container" style="max-width: 1200px; padding-bottom: 4rem;">
+  <div style="text-align: center; margin-bottom: 2.5rem;">
+    <h2 style="font-size: 1.8rem; font-weight: 700;">Engineered for Clarity and Peace of Mind</h2>
+    <p style="color: var(--text-muted); font-size: 0.95rem; margin-top: 0.5rem;">
+      Everything you need to keep your life organized without complex software or expensive APIs.
+    </p>
+  </div>
+
+  <div class="features-grid">
+    <div class="feature-box">
+      <div class="feature-icon">🧠</div>
+      <h3 style="font-size: 1.15rem; font-weight: 600; margin-bottom: 0.5rem;">Personal Memory System</h3>
+      <p style="color: var(--text-muted); font-size: 0.9rem;">
+        Store important notes, college documents, policy numbers, and milestones with flexible categories, tags, and search.
+      </p>
+    </div>
+
+    <div class="feature-box">
+      <div class="feature-icon">📋</div>
+      <h3 style="font-size: 1.15rem; font-weight: 600; margin-bottom: 0.5rem;">Smart Task Management</h3>
+      <p style="color: var(--text-muted); font-size: 0.9rem;">
+        Track assignments and deadlines with priority levels, category filtering, and real-time overdue calculations.
+      </p>
+    </div>
+
+    <div class="feature-box">
+      <div class="feature-icon">💰</div>
+      <h3 style="font-size: 1.15rem; font-weight: 600; margin-bottom: 0.5rem;">Payment Tracker (₹ INR)</h3>
+      <p style="color: var(--text-muted); font-size: 0.9rem;">
+        Keep a transparent record of money lent to or borrowed from friends. Supports partial repayments with exact decimal precision.
+      </p>
+    </div>
+
+    <div class="feature-box">
+      <div class="feature-icon">🤝</div>
+      <h3 style="font-size: 1.15rem; font-weight: 600; margin-bottom: 0.5rem;">Promises & Commitments</h3>
+      <p style="color: var(--text-muted); font-size: 0.9rem;">
+        Never break a personal promise. Track commitments made to mentors, teachers, friends, or family with scheduled follow-ups.
+      </p>
+    </div>
+
+    <div class="feature-box">
+      <div class="feature-icon">⏰</div>
+      <h3 style="font-size: 1.15rem; font-weight: 600; margin-bottom: 0.5rem;">Automated Reminders</h3>
+      <p style="color: var(--text-muted); font-size: 0.9rem;">
+        Reliable background scheduling triggers notifications right when tasks, repayments, or follow-ups are due.
+      </p>
+    </div>
+
+    <div class="feature-box">
+      <div class="feature-icon">✨</div>
+      <h3 style="font-size: 1.15rem; font-weight: 600; margin-bottom: 0.5rem;">AI-Ready Smart Capture</h3>
+      <p style="color: var(--text-muted); font-size: 0.9rem;">
+        Type natural phrases like <em>"Remind me on Friday to submit my college project"</em> and LifeTrace parses the title, date, and category instantly.
+      </p>
+    </div>
+  </div>
+
+  <footer style="margin-top: 4rem; text-align: center; border-top: 1px solid var(--border-subtle); padding-top: 2rem; color: var(--text-faint); font-size: 0.85rem;">
+    <p>LifeTrace AI &copy; {{ current_year }} — Open-Source Personal Memory & Productivity Assistant.</p>
+    <p style="margin-top: 0.25rem;">Built with Python, Flask, SQLite, and SQLAlchemy. Safe, private, and self-hosted.</p>
+  </footer>
+</div>
+{% endblock %}

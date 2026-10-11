@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}Notifications — LifeTrace AI{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">
+      <span>🔔 In-App Notification Center</span>
+    </h1>
+    <p class="page-subtitle">All triggered alerts, task deadlines, and overdue follow-ups delivered in real time.</p>
+  </div>
+  <div class="page-actions">
+    {% if unread_count > 0 %}
+    <form action="{{ url_for('reminders.mark_all_notifications_read') }}" method="POST" style="margin: 0;">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button type="submit" class="btn btn-secondary">✓ Mark All as Read</button>
+    </form>
+    {% endif %}
+  </div>
+</div>
+
+{% if notifications %}
+<div style="display: flex; flex-direction: column; gap: 0.75rem; max-width: 900px;">
+  {% for notif in notifications %}
+  <div class="card" style="padding: 1.1rem 1.25rem; display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; {% if not notif.is_read %}border-left: 4px solid var(--primary); background: #182338;{% endif %}">
+    <div style="display: flex; gap: 0.85rem; align-items: flex-start; flex: 1;">
+      <div style="font-size: 1.4rem; line-height: 1;">
+        {% if notif.notification_type == 'task_due' %}📋
+        {% elif notif.notification_type == 'payment_due' %}💰
+        {% elif notif.notification_type == 'promise_due' %}🤝
+        {% else %}⏰
+        {% endif %}
+      </div>
+
+      <div style="flex: 1;">
+        <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+          <h3 style="font-size: 0.98rem; font-weight: 600; color: var(--text-main);">
+            {{ notif.title }}
+          </h3>
+          {% if not notif.is_read %}
+            <span class="badge" style="background: rgba(99, 102, 241, 0.2); color: #a5b4fc; font-size: 0.68rem;">NEW</span>
+          {% endif %}
+        </div>
+
+        <p style="font-size: 0.88rem; color: var(--text-muted); margin-top: 0.35rem; line-height: 1.5;">
+          {{ notif.message }}
+        </p>
+
+        <div style="font-size: 0.75rem; color: var(--text-faint); margin-top: 0.5rem;">
+          {{ notif.created_at.strftime('%b %d, %Y at %H:%M') }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div style="display: flex; align-items: center; gap: 0.4rem;">
+      {% if not notif.is_read %}
+      <form action="{{ url_for('reminders.mark_notification_read', notification_id=notif.id) }}" method="POST" style="margin: 0;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="btn btn-secondary btn-sm" title="Mark as read">Mark Read</button>
+      </form>
+      {% endif %}
+      <form action="{{ url_for('reminders.delete_notification', notification_id=notif.id) }}" method="POST" style="margin: 0;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="btn btn-outline-danger btn-sm" title="Dismiss notification">🗑</button>
+      </form>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty-state card" style="max-width: 900px;">
+  <div class="empty-state-icon">🔔</div>
+  <div class="empty-state-title">No notifications yet</div>
+  <p class="empty-state-desc">You are completely up to date! When tasks, payments, or promises trigger a reminder, they will show up here.</p>
+</div>
+{% endif %}
+{% endblock %}

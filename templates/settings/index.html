@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}Settings — LifeTrace AI{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">
+      <span>⚙️ Account & Application Settings</span>
+    </h1>
+    <p class="page-subtitle">Manage your profile, time zone, security credentials, and data backup.</p>
+  </div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 2rem; max-width: 760px;">
+  
+  <!-- Profile Preferences -->
+  <div class="card" style="padding: 2rem;">
+    <h2 class="card-title">Profile & Regional Preferences</h2>
+    <form method="POST">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="action" value="update_profile">
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="username">Username</label>
+          <input type="text" id="username" class="form-control" value="{{ current_user.username }}" disabled>
+          <small style="color: var(--text-faint); font-size: 0.75rem;">Username cannot be changed.</small>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="email">Email Address</label>
+          <input type="email" id="email" class="form-control" value="{{ current_user.email }}" disabled>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="full_name">Display Full Name</label>
+        <input type="text" id="full_name" name="full_name" class="form-control" value="{{ current_user.full_name or '' }}" required>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="timezone">Time Zone</label>
+          <select id="timezone" name="timezone" class="form-control">
+            <option value="Asia/Kolkata" {% if current_user.timezone == 'Asia/Kolkata' %}selected{% endif %}>Asia/Kolkata (IST +5:30)</option>
+            <option value="UTC" {% if current_user.timezone == 'UTC' %}selected{% endif %}>UTC</option>
+            <option value="America/New_York" {% if current_user.timezone == 'America/New_York' %}selected{% endif %}>America/New_York (EST/EDT)</option>
+            <option value="Europe/London" {% if current_user.timezone == 'Europe/London' %}selected{% endif %}>Europe/London (GMT/BST)</option>
+            <option value="Asia/Dubai" {% if current_user.timezone == 'Asia/Dubai' %}selected{% endif %}>Asia/Dubai (GST)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="currency">Currency Symbol</label>
+          <input type="text" id="currency" name="currency" class="form-control" value="{{ current_user.currency or '₹' }}" maxlength="4">
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; margin-top: 1rem;">
+        <button type="submit" class="btn btn-primary">Save Profile Preferences</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Security: Change Password -->
+  <div class="card" style="padding: 2rem;">
+    <h2 class="card-title">Security: Change Password</h2>
+    <form method="POST">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="action" value="change_password">
+
+      <div class="form-group">
+        <label class="form-label" for="current_password">Current Password *</label>
+        <input type="password" id="current_password" name="current_password" class="form-control" placeholder="••••••••" required>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="new_password">New Password *</label>
+          <input type="password" id="new_password" name="new_password" class="form-control" placeholder="Min 6 characters" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="confirm_password">Confirm New Password *</label>
+          <input type="password" id="confirm_password" name="confirm_password" class="form-control" placeholder="Repeat new password" required>
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; margin-top: 1rem;">
+        <button type="submit" class="btn btn-secondary">Update Password</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Data Export Backup -->
+  <div class="card" style="padding: 2rem;">
+    <h2 class="card-title">Data Sovereignty & Portable Backup</h2>
+    <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 1.25rem;">
+      Download an offline JSON export containing all your tasks, personal memories, payment records, and commitments.
+    </p>
+    <a href="{{ url_for('settings.export_data') }}" class="btn btn-secondary">
+      📦 Download Complete JSON Backup
+    </a>
+  </div>
+
+  <!-- Danger Zone -->
+  <div class="card" style="padding: 2rem; border-color: rgba(239, 68, 68, 0.3);">
+    <h2 class="card-title" style="color: var(--rose);">Danger Zone: Delete Account</h2>
+    <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 1.25rem;">
+      Permanently delete your user profile and all associated tasks, memories, payment logs, and promises. This action cannot be reversed.
+    </p>
+
+    <form method="POST" action="{{ url_for('settings.delete_account') }}" onsubmit="return confirm('Are you absolutely certain you want to permanently delete your account?');">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="form-group">
+        <label class="form-label" for="confirmation">Type your username (<strong>{{ current_user.username }}</strong>) to confirm:</label>
+        <input type="text" id="confirmation" name="confirmation" class="form-control" placeholder="{{ current_user.username }}" required>
+      </div>
+      <button type="submit" class="btn btn-danger">Permanently Delete Account</button>
+    </form>
+  </div>
+
+</div>
+{% endblock %}

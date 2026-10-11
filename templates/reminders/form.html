@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Schedule Reminder — LifeTrace AI{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">
+      <span>⏰ Schedule New Reminder</span>
+    </h1>
+    <p class="page-subtitle">Configure date and time for an in-app proactive alert.</p>
+  </div>
+  <div class="page-actions">
+    <a href="{{ url_for('reminders.index') }}" class="btn btn-secondary">&larr; Back to Reminders</a>
+  </div>
+</div>
+
+<div class="card" style="max-width: 680px; margin: 0 auto; padding: 2rem;">
+  <form method="POST">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <div class="form-group">
+      <label class="form-label" for="title">Reminder Title / Subject *</label>
+      <input type="text" id="title" name="title" class="form-control" placeholder="e.g. Call Bank regarding KYC renewal" required autofocus>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label" for="due_datetime">Trigger Date & Time *</label>
+        <input type="datetime-local" id="due_datetime" name="due_datetime" class="form-control" required>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="related_type">Related Module</label>
+        <select id="related_type" name="related_type" class="form-control">
+          <option value="general">General Alert</option>
+          <option value="task">Task Deadline</option>
+          <option value="payment">Payment Follow-up</option>
+          <option value="promise">Promise Follow-up</option>
+          <option value="memory">Document Renewal</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="description">Detailed Alert Message (Optional)</label>
+      <textarea id="description" name="description" class="form-control" rows="4" placeholder="Additional instructions or notes to display in the notification..."></textarea>
+    </div>
+
+    <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 2rem; border-top: 1px solid var(--border-subtle); padding-top: 1.25rem;">
+      <a href="{{ url_for('reminders.index') }}" class="btn btn-secondary">Cancel</a>
+      <button type="submit" class="btn btn-primary">Schedule Reminder</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

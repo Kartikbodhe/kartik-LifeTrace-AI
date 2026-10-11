@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}Bad Request (400) — LifeTrace AI{% endblock %}
+
+{% block content %}
+<div style="min-height: 60vh; display: flex; align-items: center; justify-content: center; text-align: center; padding: 2rem;">
+  <div class="card" style="max-width: 500px; padding: 3rem 2rem;">
+    <div style="font-size: 4rem; margin-bottom: 1rem;">⚠️</div>
+    <h1 style="font-size: 1.8rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--amber);">Invalid Request</h1>
+    <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 2rem;">
+      The submitted form data or request format was malformed or expired. Please try again.
+    </p>
+    <a href="{{ url_for('dashboard.index') }}" class="btn btn-primary">Return to Dashboard &rarr;</a>
+  </div>
+</div>
+{% endblock %}

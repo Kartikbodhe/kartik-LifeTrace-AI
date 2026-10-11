@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+
+{% block title %}Tasks — LifeTrace AI{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">
+      <span>📋 Smart Task Management</span>
+    </h1>
+    <p class="page-subtitle">Track college assignments, work deliverables, and daily routines.</p>
+  </div>
+  <div class="page-actions">
+    <a href="{{ url_for('tasks.new') }}" class="btn btn-primary">
+      <span>+</span>
+      <span>Add New Task</span>
+    </a>
+  </div>
+</div>
+
+<!-- Quick Task Stats Banner -->
+<div class="stats-grid" style="margin-bottom: 1.5rem;">
+  <div class="stat-card" style="--card-accent: var(--primary);">
+    <div class="stat-label">Pending / In Progress</div>
+    <div class="stat-value">{{ stats.pending }}</div>
+    <div class="stat-sub">Active tasks requiring focus</div>
+  </div>
+  <div class="stat-card" style="--card-accent: var(--rose);">
+    <div class="stat-label">Overdue Tasks</div>
+    <div class="stat-value" style="color: var(--rose);">{{ stats.overdue }}</div>
+    <div class="stat-sub">Past their scheduled deadline</div>
+  </div>
+  <div class="stat-card" style="--card-accent: var(--emerald);">
+    <div class="stat-label">Completed</div>
+    <div class="stat-value" style="color: var(--emerald);">{{ stats.completed }}</div>
+    <div class="stat-sub">Out of {{ stats.total }} total tasks</div>
+  </div>
+</div>
+
+<!-- Filter Bar -->
+<form method="GET" action="{{ url_for('tasks.index') }}" class="filter-bar">
+  <div class="filter-input">
+    <input type="text" name="search" class="form-control" placeholder="🔍 Search tasks..." value="{{ search_query }}">
+  </div>
+
+  <select name="status" class="form-control filter-select" onchange="this.form.submit()">
+    <option value="">All Statuses</option>
+    <option value="Pending" {% if current_status == 'Pending' %}selected{% endif %}>Pending</option>
+    <option value="In Progress" {% if current_status == 'In Progress' %}selected{% endif %}>In Progress</option>
+    <option value="Completed" {% if current_status == 'Completed' %}selected{% endif %}>Completed</option>
+    <option value="overdue" {% if current_status == 'overdue' %}selected{% endif %}>⚠️ Overdue</option>
+  </select>
+
+  <select name="priority" class="form-control filter-select" onchange="this.form.submit()">
+    <option value="">All Priorities</option>
+    {% for p in priorities %}
+      <option value="{{ p }}" {% if current_priority == p %}selected{% endif %}>{{ p }} Priority</option>
+    {% endfor %}
+  </select>
+
+  <select name="category" class="form-control filter-select" onchange="this.form.submit()">
+    <option value="">All Categories</option>
+    {% for c in categories %}
+      <option value="{{ c }}" {% if current_category == c %}selected{% endif %}>{{ c }}</option>
+    {% endfor %}
+  </select>
+
+  <select name="sort" class="form-control filter-select" onchange="this.form.submit()">
+    <option value="due_date" {% if current_sort == 'due_date' %}selected{% endif %}>Sort by Due Date</option>
+    <option value="priority" {% if current_sort == 'priority' %}selected{% endif %}>Sort by Priority</option>
+    <option value="newest" {% if current_sort == 'newest' %}selected{% endif %}>Newest First</option>
+  </select>
+
+  <button type="submit" class="btn btn-secondary">Filter</button>
+  {% if search_query or current_status or current_priority or current_category or current_sort != 'due_date' %}
+    <a href="{{ url_for('tasks.index') }}" class="btn btn-secondary" title="Clear Filters">✕ Clear</a>
+  {% endif %}
+</form>
+
+<!-- Tasks List -->
+{% if tasks %}
+<div style="display: flex; flex-direction: column; gap: 0.75rem;">
+  {% for task in tasks %}
+  <div class="card" style="padding: 1rem 1.25rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; {% if task.status == 'Completed' %}opacity: 0.75;{% endif %}">
+    <div style="display: flex; align-items: flex-start; gap: 1rem; min-width: 0; flex: 1;">
+      <!-- Toggle button -->
+      <form action="{{ url_for('tasks.toggle', task_id=task.id) }}" method="POST" style="margin-top: 0.2rem;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" style="background: {% if task.status == 'Completed' %}var(--emerald){% else %}transparent{% endif %}; border: 1.5px solid {% if task.status == 'Completed' %}var(--emerald){% else %}var(--text-faint){% endif %}; width: 22px; height: 22px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.8rem; font-weight: 700;" title="{{ 'Reopen task' if task.status == 'Completed' else 'Mark as completed' }}">
+          {% if task.status == 'Completed' %}✓{% endif %}
+        </button>
+      </form>
+
+      <div style="min-width: 0; flex: 1;">
+        <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+          <h3 style="font-size: 1rem; font-weight: 600; color: var(--text-main); {% if task.status == 'Completed' %}text-decoration: line-through; color: var(--text-muted);{% endif %}">
+            <a href="{{ url_for('tasks.edit', task_id=task.id) }}" style="color: inherit;">
+              {{ task.title }}
+            </a>
+          </h3>
+          <span class="badge badge-priority-{{ task.priority|lower }}">{{ task.priority }}</span>
+          <span class="badge" style="background: rgba(255, 255, 255, 0.05); color: var(--text-muted); font-size: 0.72rem;">{{ task.category }}</span>
+          <span class="badge badge-{{ task.status|lower|replace(' ', '-') }}">{{ task.status }}</span>
+        </div>
+
+        {% if task.description %}
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.35rem; line-height: 1.4;">
+            {{ task.description }}
+          </p>
+        {% endif %}
+
+        <div style="font-size: 0.78rem; color: var(--text-faint); margin-top: 0.4rem; display: flex; gap: 1rem; align-items: center;">
+          {% if task.due_date %}
+            <span style="{% if task.is_overdue %}color: var(--rose); font-weight: 600;{% endif %}">
+              📅 Due: {{ task.due_date.strftime('%b %d, %Y at %H:%M') }}
+              {% if task.is_overdue %}<strong>(OVERDUE)</strong>{% endif %}
+            </span>
+          {% else %}
+            <span>📅 No due date</span>
+          {% endif %}
+
+          {% if task.completed_at %}
+            <span style="color: var(--emerald);">✓ Finished {{ task.completed_at.strftime('%b %d') }}</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div style="display: flex; align-items: center; gap: 0.5rem;">
+      <a href="{{ url_for('tasks.edit', task_id=task.id) }}" class="btn btn-secondary btn-sm">Edit</a>
+      <form action="{{ url_for('tasks.delete', task_id=task.id) }}" method="POST" onsubmit="return confirm('Delete this task?');" style="margin: 0;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="btn btn-outline-danger btn-sm">🗑</button>
+      </form>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty-state card">
+  <div class="empty-state-icon">📋</div>
+  <div class="empty-state-title">No tasks found</div>
+  <p class="empty-state-desc">
+    {% if search_query or current_status or current_priority %}
+      No tasks match your active filters. Try adjusting your search query or status filter.
+    {% else %}
+      You don't have any tasks right now. Create tasks with due dates to stay ahead of deadlines!
+    {% endif %}
+  </p>
+  <a href="{{ url_for('tasks.new') }}" class="btn btn-primary">+ Create New Task</a>
+</div>
+{% endif %}
+{% endblock %}

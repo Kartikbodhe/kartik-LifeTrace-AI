@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics & Insights — LifeTrace AI{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">
+      <span>📈 Analytics & Productivity Insights</span>
+    </h1>
+    <p class="page-subtitle">Visual breakdowns of your commitments, financial balances, and habits.</p>
+  </div>
+</div>
+
+{% if has_data %}
+<!-- Top KPI Summary Cards -->
+<div class="stats-grid">
+  <div class="stat-card" style="--card-accent: var(--primary);">
+    <div class="stat-label">Task Completion Rate</div>
+    <div class="stat-value">{{ task_metrics.completion_rate }}%</div>
+    <div class="stat-sub">{{ task_metrics.completed }} of {{ task_metrics.total }} tasks completed</div>
+  </div>
+
+  <div class="stat-card" style="--card-accent: var(--rose);">
+    <div class="stat-label">Overdue Tasks</div>
+    <div class="stat-value" style="color: var(--rose);">{{ task_metrics.overdue }}</div>
+    <div class="stat-sub">Immediate action required</div>
+  </div>
+
+  <div class="stat-card" style="--card-accent: var(--emerald);">
+    <div class="stat-label">Outstanding Loans Lent</div>
+    <div class="stat-value" style="color: var(--emerald);">₹{{ "%.2f"|format(payment_metrics.lent_outstanding) }}</div>
+    <div class="stat-sub">Recovered: ₹{{ "%.2f"|format(payment_metrics.lent_recovered) }}</div>
+  </div>
+
+  <div class="stat-card" style="--card-accent: var(--violet);">
+    <div class="stat-label">Commitments Honored</div>
+    <div class="stat-value">{{ promise_metrics.completed }} / {{ promise_metrics.total }}</div>
+    <div class="stat-sub">
+      {% if promise_metrics.overdue > 0 %}
+        <span style="color: var(--rose);">● {{ promise_metrics.overdue }} overdue follow-ups</span>
+      {% else %}
+        <span>All follow-ups on track</span>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Charts Grid -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+  
+  <!-- Task Status Doughnut -->
+  <div class="card">
+    <h2 class="card-title">Task Status Breakdown</h2>
+    <div style="position: relative; height: 260px;">
+      <canvas id="taskStatusChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Weekly Activity Bar Chart -->
+  <div class="card">
+    <h2 class="card-title">7-Day Task Activity Trend</h2>
+    <div style="position: relative; height: 260px;">
+      <canvas id="taskTrendChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Payment Balance Bar Chart -->
+  <div class="card">
+    <h2 class="card-title">Financial Summary: Lent vs Borrowed (₹)</h2>
+    <div style="position: relative; height: 260px;">
+      <canvas id="paymentBalanceChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Category Distribution -->
+  <div class="card">
+    <h2 class="card-title">Activity by Category</h2>
+    {% if task_metrics.categories_labels %}
+    <div style="position: relative; height: 260px;">
+      <canvas id="categoryDistributionChart"></canvas>
+    </div>
+    {% else %}
+    <div class="empty-state" style="padding: 3rem 1rem;">
+      <p>Add categorized tasks to visualize your life distribution.</p>
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+
+{% else %}
+<div class="empty-state card">
+  <div class="empty-state-icon">📈</div>
+  <div class="empty-state-title">No analytics data available yet</div>
+  <p class="empty-state-desc">
+    Once you begin recording tasks, payments, and commitments, LifeTrace AI will generate detailed visual productivity and financial charts for you.
+  </p>
+  <div style="display: flex; gap: 0.75rem; justify-content: center;">
+    <a href="{{ url_for('tasks.new') }}" class="btn btn-primary">+ Create Task</a>
+    <a href="{{ url_for('payments.new') }}" class="btn btn-secondary">+ Record Payment</a>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<!-- Chart.js via CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+  window.analyticsData = {
+    task_metrics: {{ task_metrics|tojson }},
+    payment_metrics: {{ payment_metrics|tojson }},
+    promise_metrics: {{ promise_metrics|tojson }}
+  };
+</script>
+<script src="{{ url_for('static', filename='js/analytics.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+
+{% block title %}Payments Tracker (₹ INR) — LifeTrace AI{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">
+      <span>💰 Payment & Loan Tracker</span>
+    </h1>
+    <p class="page-subtitle">Track money lent to or borrowed from colleagues, friends, and family.</p>
+  </div>
+  <div class="page-actions">
+    <a href="{{ url_for('payments.new') }}" class="btn btn-primary">
+      <span>+</span>
+      <span>Record Transaction</span>
+    </a>
+  </div>
+</div>
+
+<!-- Friendly Informational Disclaimer Banner -->
+<div class="alert alert-info" style="display: flex; gap: 0.75rem; align-items: center;">
+  <span style="font-size: 1.25rem;">ℹ️</span>
+  <span style="font-size: 0.85rem;">
+    <strong>Personal Tracker Note:</strong> This module is an offline personal ledger to help you remember commitments. It does not process banking transactions, move real currency, or access financial accounts.
+  </span>
+</div>
+
+<!-- Financial Summary Cards -->
+<div class="stats-grid">
+  <!-- Lent Summary -->
+  <div class="stat-card" style="--card-accent: var(--emerald);">
+    <div class="stat-label">Money Lent (To Collect)</div>
+    <div class="stat-value" style="color: var(--emerald);">₹{{ summary.lent_outstanding }}</div>
+    <div class="stat-sub">
+      Recovered: ₹{{ summary.lent_recovered }} / Total Lent: ₹{{ summary.lent_original }}
+    </div>
+  </div>
+
+  <!-- Borrowed Summary -->
+  <div class="stat-card" style="--card-accent: var(--amber);">
+    <div class="stat-label">Money Borrowed (You Owe)</div>
+    <div class="stat-value" style="color: var(--amber);">₹{{ summary.borrowed_outstanding }}</div>
+    <div class="stat-sub">
+      Repaid: ₹{{ summary.borrowed_repaid }} / Total Borrowed: ₹{{ summary.borrowed_original }}
+    </div>
+  </div>
+
+  <!-- Net Position -->
+  <div class="stat-card" style="--card-accent: var(--primary);">
+    <div class="stat-label">Net Balance Position</div>
+    {% set net = summary.lent_outstanding - summary.borrowed_outstanding %}
+    <div class="stat-value" style="color: {% if net >= 0 %}var(--emerald){% else %}var(--rose){% endif %};">
+      {% if net >= 0 %}+{% endif %}₹{{ net }}
+    </div>
+    <div class="stat-sub">
+      {% if net >= 0 %}Overall people owe you more than you owe{% else %}You have more liabilities than receivables{% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Filters -->
+<form method="GET" action="{{ url_for('payments.index') }}" class="filter-bar">
+  <div class="filter-input">
+    <input type="text" name="search" class="form-control" placeholder="🔍 Search by person name or note..." value="{{ search_query }}">
+  </div>
+
+  <select name="type" class="form-control filter-select" onchange="this.form.submit()">
+    <option value="">All Types (Lent & Borrowed)</option>
+    <option value="LENT" {% if current_type == 'LENT' %}selected{% endif %}>Money Lent</option>
+    <option value="BORROWED" {% if current_type == 'BORROWED' %}selected{% endif %}>Money Borrowed</option>
+  </select>
+
+  <select name="status" class="form-control filter-select" onchange="this.form.submit()">
+    <option value="">All Statuses</option>
+    <option value="Pending" {% if current_status == 'Pending' %}selected{% endif %}>Pending</option>
+    <option value="Partially Paid" {% if current_status == 'Partially Paid' %}selected{% endif %}>Partially Paid</option>
+    <option value="Settled" {% if current_status == 'Settled' %}selected{% endif %}>Settled</option>
+    <option value="overdue" {% if current_status == 'overdue' %}selected{% endif %}>⚠️ Overdue</option>
+  </select>
+
+  <select name="sort" class="form-control filter-select" onchange="this.form.submit()">
+    <option value="newest" {% if current_sort == 'newest' %}selected{% endif %}>Newest First</option>
+    <option value="expected_date" {% if current_sort == 'expected_date' %}selected{% endif %}>Expected Repayment Date</option>
+    <option value="amount_high" {% if current_sort == 'amount_high' %}selected{% endif %}>Highest Amount</option>
+    <option value="oldest" {% if current_sort == 'oldest' %}selected{% endif %}>Oldest First</option>
+  </select>
+
+  <button type="submit" class="btn btn-secondary">Filter</button>
+  {% if search_query or current_type or current_status or current_sort != 'newest' %}
+    <a href="{{ url_for('payments.index') }}" class="btn btn-secondary" title="Clear Filters">✕ Clear</a>
+  {% endif %}
+</form>
+
+<!-- Transactions Table -->
+{% if transactions %}
+<div class="card" style="padding: 0; overflow: hidden;">
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Person</th>
+          <th>Type</th>
+          <th>Initial Amount</th>
+          <th>Remaining Balance</th>
+          <th>Date</th>
+          <th>Expected By</th>
+          <th>Status</th>
+          <th style="text-align: right;">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in transactions %}
+        <tr>
+          <td>
+            <a href="{{ url_for('payments.detail', payment_id=p.id) }}" style="font-weight: 600; color: var(--text-main);">
+              {{ p.person_name }}
+            </a>
+            {% if p.description %}
+              <div style="font-size: 0.75rem; color: var(--text-muted); max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                {{ p.description }}
+              </div>
+            {% endif %}
+          </td>
+          <td>
+            <span class="badge badge-{{ p.transaction_type|lower }}">
+              {{ 'Lent' if p.transaction_type == 'LENT' else 'Borrowed' }}
+            </span>
+          </td>
+          <td style="font-weight: 600;">₹{{ p.amount }}</td>
+          <td>
+            <strong style="color: {% if p.remaining_balance == 0 %}var(--emerald){% elif p.transaction_type == 'LENT' %}#34d399{% else %}#fbbf24{% endif %}; font-size: 1rem;">
+              ₹{{ p.remaining_balance }}
+            </strong>
+          </td>
+          <td style="font-size: 0.82rem; color: var(--text-muted);">{{ p.transaction_date.strftime('%b %d, %Y') }}</td>
+          <td style="font-size: 0.82rem;">
+            {% if p.expected_repayment_date %}
+              <span style="{% if p.is_overdue %}color: var(--rose); font-weight: 600;{% else %}color: var(--text-muted);{% endif %}">
+                {{ p.expected_repayment_date.strftime('%b %d, %Y') }}
+                {% if p.is_overdue %}<br><small>(OVERDUE)</small>{% endif %}
+              </span>
+            {% else %}
+              <span style="color: var(--text-faint);">&mdash;</span>
+            {% endif %}
+          </td>
+          <td>
+            <span class="badge badge-{{ p.status|lower|replace(' ', '-') }}">{{ p.status }}</span>
+          </td>
+          <td style="text-align: right;">
+            <a href="{{ url_for('payments.detail', payment_id=p.id) }}" class="btn btn-secondary btn-sm">
+              Manage &rarr;
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="empty-state card">
+  <div class="empty-state-icon">💰</div>
+  <div class="empty-state-title">No payment records found</div>
+  <p class="empty-state-desc">
+    {% if search_query or current_type or current_status %}
+      No records match your active filters. Try clearing your search parameters.
+    {% else %}
+      Keep your friendships clean and transparent by recording money lent or borrowed.
+    {% endif %}
+  </p>
+  <a href="{{ url_for('payments.new') }}" class="btn btn-primary">+ Record First Transaction</a>
+</div>
+{% endif %}
+{% endblock %}

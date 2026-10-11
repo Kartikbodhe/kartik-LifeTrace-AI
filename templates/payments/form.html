@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Edit Payment Record' if action == 'edit' else 'Record New Payment' }} — LifeTrace AI{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">
+      <span>{{ '✏️ Edit Payment Record' if action == 'edit' else '💰 Record New Payment' }}</span>
+    </h1>
+    <p class="page-subtitle">Personal ledger for tracking money lent or borrowed in ₹ (INR).</p>
+  </div>
+  <div class="page-actions">
+    <a href="{{ url_for('payments.index') }}" class="btn btn-secondary">&larr; Back to Payments</a>
+  </div>
+</div>
+
+<div class="card" style="max-width: 680px; margin: 0 auto; padding: 2rem;">
+  <form method="POST">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label" for="transaction_type">Transaction Type *</label>
+        <select id="transaction_type" name="transaction_type" class="form-control" required>
+          <option value="LENT" {% if payment and payment.transaction_type == 'LENT' %}selected{% elif not payment %}selected{% endif %}>
+            🟢 Money Lent (You gave money to someone)
+          </option>
+          <option value="BORROWED" {% if payment and payment.transaction_type == 'BORROWED' %}selected{% endif %}>
+            🟡 Money Borrowed (You took money from someone)
+          </option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="person_name">Person's Name / Nickname *</label>
+        <input type="text" id="person_name" name="person_name" class="form-control" placeholder="e.g. Rahul Verma or Uncle Rajesh" value="{{ payment.person_name if payment else '' }}" required autofocus>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label" for="amount">Amount in INR (₹) *</label>
+        <input type="number" step="0.01" min="0.01" id="amount" name="amount" class="form-control" placeholder="e.g. 1500.00" value="{{ payment.amount if payment else '' }}" required>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="transaction_date">Date of Transaction</label>
+        <input type="date" id="transaction_date" name="transaction_date" class="form-control" value="{{ payment.transaction_date.strftime('%Y-%m-%d') if payment else '' }}">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label" for="expected_repayment_date">Expected Repayment Date (Optional)</label>
+        <input type="date" id="expected_repayment_date" name="expected_repayment_date" class="form-control" value="{{ payment.expected_repayment_date.strftime('%Y-%m-%d') if payment and payment.expected_repayment_date else '' }}">
+      </div>
+
+      {% if action != 'edit' %}
+      <div class="form-group" style="display: flex; align-items: flex-end; padding-bottom: 0.75rem;">
+        <label class="form-check">
+          <input type="checkbox" name="schedule_reminder" value="1" checked>
+          <span>Schedule an automated reminder on expected date</span>
+        </label>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="description">Notes / Purpose (Optional)</label>
+      <textarea id="description" name="description" class="form-control" rows="3" placeholder="e.g. Split restaurant bill, semester textbook purchase...">{{ payment.description if payment else '' }}</textarea>
+    </div>
+
+    <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 2rem; border-top: 1px solid var(--border-subtle); padding-top: 1.25rem;">
+      <a href="{{ url_for('payments.index') }}" class="btn btn-secondary">Cancel</a>
+      <button type="submit" class="btn btn-primary">
+        {{ 'Update Record' if action == 'edit' else 'Save Payment Record' }}
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}

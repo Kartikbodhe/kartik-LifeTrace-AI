@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block title %}Promises & Follow-Ups — LifeTrace AI{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">
+      <span>🤝 Promises & Commitments</span>
+    </h1>
+    <p class="page-subtitle">Track personal promises made to professors, clients, friends, and family.</p>
+  </div>
+  <div class="page-actions">
+    <a href="{{ url_for('promises.new') }}" class="btn btn-primary">
+      <span>+</span>
+      <span>Add New Promise</span>
+    </a>
+  </div>
+</div>
+
+<!-- Stats Banner -->
+<div class="stats-grid" style="margin-bottom: 1.5rem;">
+  <div class="stat-card" style="--card-accent: var(--violet);">
+    <div class="stat-label">Pending Commitments</div>
+    <div class="stat-value">{{ stats.pending }}</div>
+    <div class="stat-sub">Active promises awaiting fulfillment</div>
+  </div>
+  <div class="stat-card" style="--card-accent: var(--rose);">
+    <div class="stat-label">Overdue Follow-ups</div>
+    <div class="stat-value" style="color: var(--rose);">{{ stats.overdue }}</div>
+    <div class="stat-sub">Missed follow-up dates</div>
+  </div>
+  <div class="stat-card" style="--card-accent: var(--emerald);">
+    <div class="stat-label">Honored Commitments</div>
+    <div class="stat-value" style="color: var(--emerald);">{{ stats.completed }}</div>
+    <div class="stat-sub">Promises fulfilled with integrity</div>
+  </div>
+</div>
+
+<!-- Filters -->
+<form method="GET" action="{{ url_for('promises.index') }}" class="filter-bar">
+  <div class="filter-input">
+    <input type="text" name="search" class="form-control" placeholder="🔍 Search commitment title or person..." value="{{ search_query }}">
+  </div>
+
+  <select name="status" class="form-control filter-select" onchange="this.form.submit()">
+    <option value="">All Statuses</option>
+    <option value="Pending" {% if current_status == 'Pending' %}selected{% endif %}>Pending</option>
+    <option value="Completed" {% if current_status == 'Completed' %}selected{% endif %}>Completed</option>
+    <option value="Cancelled" {% if current_status == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+    <option value="overdue" {% if current_status == 'overdue' %}selected{% endif %}>⚠️ Overdue</option>
+  </select>
+
+  <select name="priority" class="form-control filter-select" onchange="this.form.submit()">
+    <option value="">All Priorities</option>
+    {% for p in priorities %}
+      <option value="{{ p }}" {% if current_priority == p %}selected{% endif %}>{{ p }} Priority</option>
+    {% endfor %}
+  </select>
+
+  <select name="sort" class="form-control filter-select" onchange="this.form.submit()">
+    <option value="follow_up" {% if current_sort == 'follow_up' %}selected{% endif %}>Follow-up Date</option>
+    <option value="priority" {% if current_sort == 'priority' %}selected{% endif %}>Priority</option>
+    <option value="newest" {% if current_sort == 'newest' %}selected{% endif %}>Newest First</option>
+  </select>
+
+  <button type="submit" class="btn btn-secondary">Filter</button>
+  {% if search_query or current_status or current_priority or current_sort != 'follow_up' %}
+    <a href="{{ url_for('promises.index') }}" class="btn btn-secondary" title="Clear Filters">✕ Clear</a>
+  {% endif %}
+</form>
+
+<!-- Promises List -->
+{% if promises %}
+<div style="display: flex; flex-direction: column; gap: 0.75rem;">
+  {% for promise in promises %}
+  <div class="card" style="padding: 1.1rem 1.25rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; {% if promise.status == 'Completed' %}opacity: 0.75;{% endif %}">
+    <div style="display: flex; align-items: flex-start; gap: 1rem; min-width: 0; flex: 1;">
+      <!-- Toggle button -->
+      <form action="{{ url_for('promises.toggle', promise_id=promise.id) }}" method="POST" style="margin-top: 0.2rem;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" style="background: {% if promise.status == 'Completed' %}var(--emerald){% else %}transparent{% endif %}; border: 1.5px solid {% if promise.status == 'Completed' %}var(--emerald){% else %}var(--text-faint){% endif %}; width: 22px; height: 22px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.8rem; font-weight: 700;" title="{{ 'Reopen commitment' if promise.status == 'Completed' else 'Mark fulfilled' }}">
+          {% if promise.status == 'Completed' %}✓{% endif %}
+        </button>
+      </form>
+
+      <div style="min-width: 0; flex: 1;">
+        <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+          <h3 style="font-size: 1rem; font-weight: 600; color: var(--text-main); {% if promise.status == 'Completed' %}text-decoration: line-through; color: var(--text-muted);{% endif %}">
+            {{ promise.title }}
+          </h3>
+          <span class="badge" style="background: rgba(139, 92, 246, 0.15); color: #c084fc;">
+            👤 {{ promise.person_or_org }}
+          </span>
+          <span class="badge badge-priority-{{ promise.priority|lower }}">{{ promise.priority }}</span>
+          <span class="badge badge-{{ promise.status|lower }}">{{ promise.status }}</span>
+        </div>
+
+        {% if promise.description %}
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.35rem; line-height: 1.4;">
+            {{ promise.description }}
+          </p>
+        {% endif %}
+
+        <div style="font-size: 0.78rem; color: var(--text-faint); margin-top: 0.4rem; display: flex; gap: 1rem; align-items: center;">
+          <span>Commited: {{ promise.commitment_date.strftime('%b %d, %Y') }}</span>
+          {% if promise.follow_up_date %}
+            <span style="{% if promise.is_overdue %}color: var(--rose); font-weight: 700;{% endif %}">
+              📅 Follow-up: {{ promise.follow_up_date.strftime('%b %d, %Y') }}
+              {% if promise.is_overdue %}(OVERDUE){% endif %}
+            </span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div style="display: flex; align-items: center; gap: 0.5rem;">
+      <a href="{{ url_for('promises.edit', promise_id=promise.id) }}" class="btn btn-secondary btn-sm">Edit</a>
+      <form action="{{ url_for('promises.delete', promise_id=promise.id) }}" method="POST" onsubmit="return confirm('Delete this promise?');" style="margin: 0;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="btn btn-outline-danger btn-sm">🗑</button>
+      </form>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty-state card">
+  <div class="empty-state-icon">🤝</div>
+  <div class="empty-state-title">No commitments found</div>
+  <p class="empty-state-desc">
+    {% if search_query or current_status %}
+      No promises match your filters. Try adjusting your search query.
+    {% else %}
+      Keep your promises top-of-mind. Record what you promised, to whom, and when you plan to follow up.
+    {% endif %}
+  </p>
+  <a href="{{ url_for('promises.new') }}" class="btn btn-primary">+ Add New Commitment</a>
+</div>
+{% endif %}
+{% endblock %}

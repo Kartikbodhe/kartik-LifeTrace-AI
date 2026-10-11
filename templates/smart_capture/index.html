@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Smart Capture — LifeTrace AI{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">
+      <span>✨ AI-Ready Smart Capture</span>
+    </h1>
+    <p class="page-subtitle">Type natural thoughts or reminders — LifeTrace identifies dates, categories, and amounts instantly.</p>
+  </div>
+</div>
+
+<!-- Transparent Architecture Note -->
+<div class="alert alert-info" style="display: flex; gap: 0.75rem; align-items: center; max-width: 860px; margin: 0 auto 1.75rem auto;">
+  <span style="font-size: 1.25rem;">⚡</span>
+  <span style="font-size: 0.85rem;">
+    <strong>Pattern-Engine & AI-Ready Interface:</strong> Parses natural phrasing deterministically into tasks, payments, promises, or memories. Always reviews and requires your confirmation before saving any record.
+  </span>
+</div>
+
+<!-- Capture Input Card -->
+<div class="card" style="max-width: 860px; margin: 0 auto 2rem auto; padding: 2rem;">
+  <div class="form-group" style="margin-bottom: 1rem;">
+    <label class="form-label" for="smartInput" style="font-size: 0.95rem; font-weight: 700;">
+      What would you like LifeTrace to remember or schedule?
+    </label>
+    <div style="position: relative;">
+      <textarea id="smartInput" class="form-control" rows="3" placeholder="e.g. Remind me on Friday to submit my college project report..." style="font-size: 1rem; padding: 1rem;"></textarea>
+    </div>
+  </div>
+
+  <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem;">
+    <div style="font-size: 0.8rem; color: var(--text-faint);">
+      Press <kbd style="background: rgba(255,255,255,0.08); padding: 0.2rem 0.4rem; border-radius: 4px;">Enter</kbd> to analyze or click the button.
+    </div>
+    <button type="button" id="smartAnalyzeBtn" class="btn btn-primary" style="padding: 0.7rem 1.5rem; font-size: 0.95rem;">
+      ✨ Analyze & Preview
+    </button>
+  </div>
+
+  <!-- Example Chips -->
+  <div style="margin-top: 1.5rem; border-top: 1px solid var(--border-subtle); padding-top: 1.25rem;">
+    <div style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0.65rem;">
+      TRY AN EXAMPLE (CLICK TO TEST):
+    </div>
+    <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+      <button type="button" class="badge" style="background: rgba(255,255,255,0.05); color: var(--text-main); cursor: pointer; border: 1px solid var(--border-subtle); padding: 0.4rem 0.75rem;" onclick="useExample('Remind me on Friday to submit my college project report')">
+        📋 Remind me on Friday to submit my college project report
+      </button>
+      <button type="button" class="badge" style="background: rgba(255,255,255,0.05); color: var(--text-main); cursor: pointer; border: 1px solid var(--border-subtle); padding: 0.4rem 0.75rem;" onclick="useExample('Lent ₹500 to Rahul until tomorrow')">
+        💰 Lent ₹500 to Rahul until tomorrow
+      </button>
+      <button type="button" class="badge" style="background: rgba(255,255,255,0.05); color: var(--text-main); cursor: pointer; border: 1px solid var(--border-subtle); padding: 0.4rem 0.75rem;" onclick="useExample('Borrowed ₹2000 from Priya due next month')">
+        💳 Borrowed ₹2000 from Priya due next month
+      </button>
+      <button type="button" class="badge" style="background: rgba(255,255,255,0.05); color: var(--text-main); cursor: pointer; border: 1px solid var(--border-subtle); padding: 0.4rem 0.75rem;" onclick="useExample('Promised Dr. Sharma to send thesis draft by Monday')">
+        🤝 Promised Dr. Sharma to send thesis draft by Monday
+      </button>
+      <button type="button" class="badge" style="background: rgba(255,255,255,0.05); color: var(--text-main); cursor: pointer; border: 1px solid var(--border-subtle); padding: 0.4rem 0.75rem;" onclick="useExample('Remember that vehicle insurance policy number is ABC-1234 renewal on 2026-11-20')">
+        🧠 Remember vehicle insurance policy renewal
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Preview & Confirmation Container -->
+<div id="smartPreviewContainer" style="display: none; max-width: 860px; margin: 0 auto 3rem auto;">
+  <div style="font-size: 0.95rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
+    <span>🔍 Extracted Data Preview</span>
+    <span style="font-size: 0.75rem; font-weight: normal; color: var(--text-muted);">(Please verify before saving)</span>
+  </div>
+  <div id="smartPreviewCard" class="card" style="padding: 1.75rem; border: 1px solid var(--primary);">
+    <!-- Populated dynamically by smart_capture.js -->
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/smart_capture.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}Access Denied (403) — LifeTrace AI{% endblock %}
+
+{% block content %}
+<div style="min-height: 60vh; display: flex; align-items: center; justify-content: center; text-align: center; padding: 2rem;">
+  <div class="card" style="max-width: 500px; padding: 3rem 2rem; border-color: rgba(239, 68, 68, 0.4);">
+    <div style="font-size: 4rem; margin-bottom: 1rem;">🛡️</div>
+    <h1 style="font-size: 1.8rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--rose);">Access Forbidden</h1>
+    <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 2rem;">
+      You do not have authorization to view or modify this record. Each user's memories, tasks, and payments are strictly confidential.
+    </p>
+    <a href="{{ url_for('dashboard.index') }}" class="btn btn-primary">Return to Your Dashboard &rarr;</a>
+  </div>
+</div>
+{% endblock %}

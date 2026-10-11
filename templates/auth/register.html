@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Create Account — LifeTrace AI{% endblock %}
+
+{% block public_content %}
+<div style="min-height: 85vh; display: flex; align-items: center; justify-content: center; padding: 2rem 1rem;">
+  <div class="card" style="max-width: 460px; width: 100%; padding: 2.25rem; border-radius: var(--radius-lg); box-shadow: var(--shadow-lg);">
+    <div style="text-align: center; margin-bottom: 2rem;">
+      <a href="{{ url_for('auth.index') }}" class="brand-logo" style="justify-content: center; margin-bottom: 0.75rem;">
+        <div class="brand-icon">⚡</div>
+        <span>LifeTrace AI</span>
+      </a>
+      <h2 style="font-size: 1.4rem; font-weight: 700;">Create Your Account</h2>
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem;">Start capturing your tasks, promises, and memories securely</p>
+    </div>
+
+    <form method="POST" action="{{ url_for('auth.register') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+      <div class="form-group">
+        <label class="form-label" for="full_name">Full Name</label>
+        <input type="text" id="full_name" name="full_name" class="form-control" placeholder="e.g. Rahul Sharma" value="{{ full_name or '' }}" required autofocus>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="username">Username</label>
+        <input type="text" id="username" name="username" class="form-control" placeholder="letters, numbers & underscores (3-30 chars)" value="{{ username or '' }}" required>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="email">Email Address</label>
+        <input type="email" id="email" name="email" class="form-control" placeholder="rahul@example.com" value="{{ email or '' }}" required>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="password">Password</label>
+          <input type="password" id="password" name="password" class="form-control" placeholder="min 6 chars" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="confirm_password">Confirm Password</label>
+          <input type="password" id="confirm_password" name="confirm_password" class="form-control" placeholder="repeat password" required>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.75rem; font-size: 0.95rem; margin-top: 0.75rem;">
+        Create Account 🚀
+      </button>
+    </form>
+
+    <div style="text-align: center; margin-top: 1.75rem; font-size: 0.85rem; color: var(--text-muted);">
+      Already have an account?
+      <a href="{{ url_for('auth.login') }}" style="font-weight: 600; margin-left: 0.25rem;">Sign In</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

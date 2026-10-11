@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block title %}Reminders — LifeTrace AI{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">
+      <span>⏰ Reminder Management</span>
+    </h1>
+    <p class="page-subtitle">Scheduled automated alerts for deadlines, promises, and financial follow-ups.</p>
+  </div>
+  <div class="page-actions">
+    <a href="{{ url_for('reminders.notifications') }}" class="btn btn-secondary">
+      <span>🔔</span>
+      <span>In-App Notifications</span>
+    </a>
+    <a href="{{ url_for('reminders.new') }}" class="btn btn-primary">
+      <span>+</span>
+      <span>Schedule Reminder</span>
+    </a>
+  </div>
+</div>
+
+<!-- Stats Overview -->
+<div class="stats-grid" style="margin-bottom: 1.5rem;">
+  <div class="stat-card" style="--card-accent: var(--primary);">
+    <div class="stat-label">Upcoming Reminders</div>
+    <div class="stat-value">{{ stats.upcoming }}</div>
+    <div class="stat-sub">Active alerts scheduled for the future</div>
+  </div>
+  <div class="stat-card" style="--card-accent: var(--rose);">
+    <div class="stat-label">Due / Overdue</div>
+    <div class="stat-value" style="color: var(--rose);">{{ stats.overdue }}</div>
+    <div class="stat-sub">Reminders pending notification delivery</div>
+  </div>
+  <div class="stat-card" style="--card-accent: var(--emerald);">
+    <div class="stat-label">Delivered Reminders</div>
+    <div class="stat-value" style="color: var(--emerald);">{{ stats.sent }}</div>
+    <div class="stat-sub">Successfully generated in-app alerts</div>
+  </div>
+</div>
+
+<!-- Filter Tabs -->
+<div style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem; overflow-x: auto; padding-bottom: 0.25rem;">
+  <a href="{{ url_for('reminders.index', status='all') }}" class="btn {% if current_status == 'all' %}btn-primary{% else %}btn-secondary{% endif %} btn-sm">
+    All ({{ stats.total }})
+  </a>
+  <a href="{{ url_for('reminders.index', status='upcoming') }}" class="btn {% if current_status == 'upcoming' %}btn-primary{% else %}btn-secondary{% endif %} btn-sm">
+    Upcoming ({{ stats.upcoming }})
+  </a>
+  <a href="{{ url_for('reminders.index', status='overdue') }}" class="btn {% if current_status == 'overdue' %}btn-primary{% else %}btn-secondary{% endif %} btn-sm">
+    Due / Overdue ({{ stats.overdue }})
+  </a>
+  <a href="{{ url_for('reminders.index', status='sent') }}" class="btn {% if current_status == 'sent' %}btn-primary{% else %}btn-secondary{% endif %} btn-sm">
+    Delivered ({{ stats.sent }})
+  </a>
+</div>
+
+<!-- Reminders List -->
+{% if reminders %}
+<div style="display: flex; flex-direction: column; gap: 0.75rem;">
+  {% for rem in reminders %}
+  <div class="card" style="padding: 1rem 1.25rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem;">
+    <div style="min-width: 0; flex: 1;">
+      <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+        <h3 style="font-size: 1rem; font-weight: 600; color: var(--text-main);">
+          {{ rem.title }}
+        </h3>
+        <span class="badge" style="background: rgba(99, 102, 241, 0.15); color: #a5b4fc; text-transform: capitalize;">
+          {{ rem.related_type or 'General' }}
+        </span>
+        <span class="badge badge-{{ rem.status|lower }}">{{ rem.status }}</span>
+      </div>
+
+      {% if rem.description %}
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.35rem; line-height: 1.4;">
+          {{ rem.description }}
+        </p>
+      {% endif %}
+
+      <div style="font-size: 0.78rem; color: var(--text-faint); margin-top: 0.4rem; display: flex; gap: 1rem;">
+        <span style="{% if rem.is_overdue %}color: var(--rose); font-weight: 700;{% endif %}">
+          ⏰ Due: {{ rem.due_datetime.strftime('%b %d, %Y at %H:%M') }}
+          {% if rem.is_overdue %}(Trigger Due){% endif %}
+        </span>
+        <span>Channel: {{ rem.delivery_channel }}</span>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div style="display: flex; align-items: center; gap: 0.5rem;">
+      {% if rem.status == 'Scheduled' %}
+      <form action="{{ url_for('reminders.dismiss', reminder_id=rem.id) }}" method="POST" style="margin: 0;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="btn btn-secondary btn-sm" title="Dismiss reminder">Dismiss</button>
+      </form>
+      {% endif %}
+      <form action="{{ url_for('reminders.delete', reminder_id=rem.id) }}" method="POST" onsubmit="return confirm('Delete this reminder?');" style="margin: 0;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="btn btn-outline-danger btn-sm">🗑</button>
+      </form>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty-state card">
+  <div class="empty-state-icon">⏰</div>
+  <div class="empty-state-title">No reminders found</div>
+  <p class="empty-state-desc">
+    {% if current_status != 'all' %}
+      No reminders found in this tab.
+    {% else %}
+      Never let a deadline slip past your attention. Set a reminder for upcoming commitments!
+    {% endif %}
+  </p>
+  <a href="{{ url_for('reminders.new') }}" class="btn btn-primary">+ Schedule New Reminder</a>
+</div>
+{% endif %}
+{% endblock %}

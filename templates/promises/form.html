@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Edit Commitment' if action == 'edit' else 'Add New Promise' }} — LifeTrace AI{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">
+      <span>{{ '✏️ Edit Commitment' if action == 'edit' else '🤝 Add New Promise / Commitment' }}</span>
+    </h1>
+    <p class="page-subtitle">Track promises made to maintain trust and follow through reliably.</p>
+  </div>
+  <div class="page-actions">
+    <a href="{{ url_for('promises.index') }}" class="btn btn-secondary">&larr; Back to Promises</a>
+  </div>
+</div>
+
+<div class="card" style="max-width: 720px; margin: 0 auto; padding: 2rem;">
+  <form method="POST">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <div class="form-group">
+      <label class="form-label" for="title">Commitment Title / Promise *</label>
+      <input type="text" id="title" name="title" class="form-control" placeholder="e.g. Send updated research paper draft" value="{{ promise.title if promise else '' }}" required autofocus>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label" for="person_or_org">Person or Organization *</label>
+        <input type="text" id="person_or_org" name="person_or_org" class="form-control" placeholder="e.g. Prof. Arvind or Team Lead" value="{{ promise.person_or_org if promise else '' }}" required>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="priority">Priority</label>
+        <select id="priority" name="priority" class="form-control">
+          {% for p in priorities %}
+            <option value="{{ p }}" {% if promise and promise.priority == p %}selected{% elif not promise and p == 'Medium' %}selected{% endif %}>
+              {{ p }} Priority
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label" for="commitment_date">Date Promise Was Made</label>
+        <input type="date" id="commitment_date" name="commitment_date" class="form-control" value="{{ promise.commitment_date.strftime('%Y-%m-%d') if promise else '' }}">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="follow_up_date">Follow-up / Delivery Date (Optional)</label>
+        <input type="date" id="follow_up_date" name="follow_up_date" class="form-control" value="{{ promise.follow_up_date.strftime('%Y-%m-%d') if promise and promise.follow_up_date else '' }}">
+      </div>
+    </div>
+
+    {% if action == 'edit' %}
+    <div class="form-group">
+      <label class="form-label" for="status">Status</label>
+      <select id="status" name="status" class="form-control">
+        {% for s in statuses %}
+          <option value="{{ s }}" {% if promise and promise.status == s %}selected{% endif %}>{{ s }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    {% else %}
+    <div class="form-group">
+      <label class="form-check">
+        <input type="checkbox" name="schedule_reminder" value="1" checked>
+        <span>Schedule an automated reminder on the follow-up date</span>
+      </label>
+    </div>
+    {% endif %}
+
+    <div class="form-group">
+      <label class="form-label" for="description">Context & Details (Optional)</label>
+      <textarea id="description" name="description" class="form-control" rows="4" placeholder="Any specific terms, attachments, or agreements made...">{{ promise.description if promise else '' }}</textarea>
+    </div>
+
+    <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 2rem; border-top: 1px solid var(--border-subtle); padding-top: 1.25rem;">
+      <a href="{{ url_for('promises.index') }}" class="btn btn-secondary">Cancel</a>
+      <button type="submit" class="btn btn-primary">
+        {{ 'Update Promise' if action == 'edit' else 'Save Promise' }}
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}

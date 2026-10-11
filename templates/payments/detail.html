@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+
+{% block title %}Payment Details: {{ payment.person_name }} — LifeTrace AI{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+      <span class="badge badge-{{ payment.transaction_type|lower }}">
+        {{ 'Money Lent' if payment.transaction_type == 'LENT' else 'Money Borrowed' }}
+      </span>
+      <span class="badge badge-{{ payment.status|lower|replace(' ', '-') }}">{{ payment.status }}</span>
+    </div>
+    <h1 class="page-title">{{ payment.person_name }}</h1>
+    <p class="page-subtitle">Transaction initiated on {{ payment.transaction_date.strftime('%B %d, %Y') }}</p>
+  </div>
+  <div class="page-actions">
+    <a href="{{ url_for('payments.index') }}" class="btn btn-secondary">&larr; Back to Payments</a>
+    <a href="{{ url_for('payments.edit', payment_id=payment.id) }}" class="btn btn-secondary">✏️ Edit</a>
+    <form action="{{ url_for('payments.delete', payment_id=payment.id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this payment record and all its repayment logs?');" style="margin: 0;">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button type="submit" class="btn btn-outline-danger">🗑 Delete</button>
+    </form>
+  </div>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+  
+  <!-- Financial Breakdown Card -->
+  <div class="card">
+    <h2 class="card-title">Balance Overview</h2>
+    
+    <div style="margin: 1rem 0; padding: 1.25rem; background: var(--bg-body); border-radius: var(--radius-md); border: 1px solid var(--border-subtle); text-align: center;">
+      <div style="font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">
+        Remaining Outstanding Balance
+      </div>
+      <div style="font-size: 2.5rem; font-weight: 800; color: {% if payment.remaining_balance == 0 %}var(--emerald){% elif payment.transaction_type == 'LENT' %}#34d399{% else %}#fbbf24{% endif %}; margin: 0.35rem 0;">
+        ₹{{ payment.remaining_balance }}
+      </div>
+      <div style="font-size: 0.82rem; color: var(--text-faint);">
+        {% if payment.remaining_balance == 0 %}
+          🎉 Fully settled and closed!
+        {% elif payment.transaction_type == 'LENT' %}
+          Amount left for {{ payment.person_name }} to return to you
+        {% else %}
+          Amount left for you to return to {{ payment.person_name }}
+        {% endif %}
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.9rem;">
+      <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.5rem;">
+        <span style="color: var(--text-muted);">Initial Total Amount:</span>
+        <span style="font-weight: 600;">₹{{ payment.amount }}</span>
+      </div>
+      <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.5rem;">
+        <span style="color: var(--text-muted);">Total Repaid So Far:</span>
+        <span style="font-weight: 600; color: var(--emerald);">₹{{ payment.total_repaid }}</span>
+      </div>
+      <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.5rem;">
+        <span style="color: var(--text-muted);">Expected Repayment Date:</span>
+        <span style="{% if payment.is_overdue %}color: var(--rose); font-weight: 700;{% endif %}">
+          {{ payment.expected_repayment_date.strftime('%b %d, %Y') if payment.expected_repayment_date else 'No date specified' }}
+          {% if payment.is_overdue %}(OVERDUE){% endif %}
+        </span>
+      </div>
+      {% if payment.description %}
+      <div style="margin-top: 0.5rem;">
+        <span style="color: var(--text-muted); font-size: 0.8rem; display: block; margin-bottom: 0.25rem;">Notes & Purpose:</span>
+        <p style="color: var(--text-main); font-size: 0.88rem; line-height: 1.5;">{{ payment.description }}</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Record Repayment Form Card -->
+  <div class="card">
+    <h2 class="card-title">Record Repayment</h2>
+    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.25rem;">
+      Log a full or partial installment. The balance will automatically update.
+    </p>
+
+    {% if payment.remaining_balance > 0 %}
+    <form action="{{ url_for('payments.add_repayment', payment_id=payment.id) }}" method="POST">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+      <div class="form-group">
+        <label class="form-label" for="repay_amount">Repayment Amount (₹) *</label>
+        <input type="number" step="0.01" min="0.01" max="{{ payment.remaining_balance }}" id="repay_amount" name="amount" class="form-control" placeholder="Max ₹{{ payment.remaining_balance }}" value="{{ payment.remaining_balance }}" required>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="repay_date">Repayment Date</label>
+        <input type="date" id="repay_date" name="repayment_date" class="form-control" value="{{ payment.transaction_date.today().strftime('%Y-%m-%d') }}">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="notes">Notes / Reference (Optional)</label>
+        <input type="text" id="notes" name="notes" class="form-control" placeholder="e.g. Paid via UPI / cash installment 1">
+      </div>
+
+      <button type="submit" class="btn btn-success" style="width: 100%; padding: 0.75rem;">
+        + Record Repayment
+      </button>
+    </form>
+    {% else %}
+    <div class="empty-state" style="padding: 2.5rem 1rem;">
+      <div class="empty-state-icon" style="color: var(--emerald);">✅</div>
+      <div class="empty-state-title" style="color: var(--emerald);">Transaction Settled!</div>
+      <p class="empty-state-desc">The outstanding balance is ₹0.00. No further repayments are required.</p>
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+
+<!-- Repayment History Section -->
+<div class="card">
+  <h2 class="card-title">Repayment History Logs</h2>
+
+  {% if payment.repayments %}
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Amount Repaid</th>
+          <th>Notes / Method</th>
+          <th style="text-align: right;">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in payment.repayments %}
+        <tr>
+          <td>{{ r.repayment_date.strftime('%b %d, %Y') }}</td>
+          <td style="font-weight: 700; color: var(--emerald);">+ ₹{{ r.amount }}</td>
+          <td style="color: var(--text-muted);">{{ r.notes or '&mdash;'|safe }}</td>
+          <td style="text-align: right;">
+            <form action="{{ url_for('payments.delete_repayment', repayment_id=r.id) }}" method="POST" onsubmit="return confirm('Delete this repayment entry? Balance will be adjusted back.');" style="margin: 0; display: inline;">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="btn btn-outline-danger btn-sm" title="Delete repayment">🗑</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state" style="padding: 2rem 1rem;">
+    <div class="empty-state-icon" style="font-size: 2rem;">💳</div>
+    <div class="empty-state-title" style="font-size: 1rem;">No repayments logged yet</div>
+    <p class="empty-state-desc" style="font-size: 0.85rem;">When installments or settlements happen, record them above to maintain an exact audit trail.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

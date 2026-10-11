@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}{{ memory.title }} — My Memory{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+      <span class="badge" style="background: rgba(6, 182, 212, 0.15); color: #22d3ee;">{{ memory.category }}</span>
+      {% if memory.event_date %}
+        <span class="badge" style="background: rgba(255, 255, 255, 0.05); color: var(--text-muted);">
+          📅 Event Date: {{ memory.event_date.strftime('%B %d, %Y') }}
+        </span>
+      {% endif %}
+    </div>
+    <h1 class="page-title">{{ memory.title }}</h1>
+    <p class="page-subtitle">Captured on {{ memory.created_at.strftime('%B %d, %Y at %H:%M') }}</p>
+  </div>
+  <div class="page-actions">
+    <a href="{{ url_for('memories.index') }}" class="btn btn-secondary">&larr; Back to List</a>
+    <a href="{{ url_for('memories.edit', memory_id=memory.id) }}" class="btn btn-primary">✏️ Edit</a>
+    <form action="{{ url_for('memories.delete', memory_id=memory.id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this memory?');" style="margin: 0;">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button type="submit" class="btn btn-outline-danger">🗑 Delete</button>
+    </form>
+  </div>
+</div>
+
+<div class="card" style="max-width: 800px; padding: 2rem;">
+  <div style="font-size: 1rem; line-height: 1.7; color: var(--text-main); white-space: pre-wrap;">{{ memory.description }}</div>
+
+  {% if memory.tag_list() %}
+  <div style="margin-top: 2rem; border-top: 1px solid var(--border-subtle); padding-top: 1rem;">
+    <div style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0.5rem;">TAGS</div>
+    <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+      {% for tag in memory.tag_list() %}
+        <a href="{{ url_for('memories.index', tag=tag) }}" class="badge" style="background: rgba(99, 102, 241, 0.12); color: #a5b4fc; padding: 0.3rem 0.75rem;">
+          #{{ tag }}
+        </a>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

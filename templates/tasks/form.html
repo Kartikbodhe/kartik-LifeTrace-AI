@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Edit Task' if action == 'edit' else 'Create New Task' }} — LifeTrace AI{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">
+      <span>{{ '✏️ Edit Task' if action == 'edit' else '📋 Create New Task' }}</span>
+    </h1>
+    <p class="page-subtitle">Define clear action items, priorities, and deadlines.</p>
+  </div>
+  <div class="page-actions">
+    <a href="{{ url_for('tasks.index') }}" class="btn btn-secondary">&larr; Back to Tasks</a>
+  </div>
+</div>
+
+<div class="card" style="max-width: 720px; margin: 0 auto; padding: 2rem;">
+  <form method="POST">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <div class="form-group">
+      <label class="form-label" for="title">Task Title *</label>
+      <input type="text" id="title" name="title" class="form-control" placeholder="e.g. Submit Operating Systems Lab Report" value="{{ task.title if task else '' }}" required autofocus>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label" for="priority">Priority</label>
+        <select id="priority" name="priority" class="form-control">
+          {% for p in priorities %}
+            <option value="{{ p }}" {% if task and task.priority == p %}selected{% elif not task and p == 'Medium' %}selected{% endif %}>
+              {{ p }} Priority
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="category">Category</label>
+        <select id="category" name="category" class="form-control">
+          {% for c in categories %}
+            <option value="{{ c }}" {% if task and task.category == c %}selected{% elif not task and c == 'General' %}selected{% endif %}>
+              {{ c }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label" for="due_date">Due Date & Time (Optional)</label>
+        <input type="datetime-local" id="due_date" name="due_date" class="form-control" value="{{ task.due_date.strftime('%Y-%m-%dT%H:%M') if task and task.due_date else '' }}">
+      </div>
+
+      {% if action == 'edit' %}
+      <div class="form-group">
+        <label class="form-label" for="status">Status</label>
+        <select id="status" name="status" class="form-control">
+          {% for s in statuses %}
+            <option value="{{ s }}" {% if task and task.status == s %}selected{% endif %}>{{ s }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      {% else %}
+      <div class="form-group" style="display: flex; align-items: flex-end; padding-bottom: 0.75rem;">
+        <label class="form-check">
+          <input type="checkbox" name="create_reminder" value="1" checked>
+          <span>Schedule an automated reminder when due</span>
+        </label>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="description">Detailed Description & Criteria</label>
+      <textarea id="description" name="description" class="form-control" rows="4" placeholder="Enter deliverables, links, notes, or instructions...">{{ task.description if task else '' }}</textarea>
+    </div>
+
+    <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 2rem; border-top: 1px solid var(--border-subtle); padding-top: 1.25rem;">
+      <a href="{{ url_for('tasks.index') }}" class="btn btn-secondary">Cancel</a>
+      <button type="submit" class="btn btn-primary">
+        {{ 'Update Task' if action == 'edit' else 'Create Task' }}
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}
