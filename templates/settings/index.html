@@ -10,9 +10,32 @@
     </h1>
     <p class="page-subtitle">Manage your profile, time zone, security credentials, and data backup.</p>
   </div>
+  <div class="page-actions">
+    <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-danger">
+      <span>🚪</span>
+      <span>Log Out</span>
+    </a>
+  </div>
 </div>
 
 <div style="display: flex; flex-direction: column; gap: 2rem; max-width: 760px;">
+
+  <!-- Active Session Card -->
+  <div class="card" style="padding: 1.25rem 1.75rem; display: flex; flex-direction: row; justify-content: space-between; align-items: center; background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.25);">
+    <div>
+      <div style="font-weight: 600; font-size: 0.95rem; color: var(--text-main); display: flex; align-items: center; gap: 0.5rem;">
+        <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--emerald);"></span>
+        <span>Active Session</span>
+      </div>
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0.25rem 0 0 0;">
+        Logged in as <strong>{{ current_user.email }}</strong> ({{ current_user.username }})
+      </p>
+    </div>
+    <a href="{{ url_for('auth.logout') }}" class="btn btn-danger" style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.5rem 1.1rem;">
+      <span>🚪</span>
+      <span>Log Out</span>
+    </a>
+  </div>
   
   <!-- Profile Preferences -->
   <div class="card" style="padding: 2rem;">
