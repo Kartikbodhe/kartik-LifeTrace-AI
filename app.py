@@ -27,6 +27,11 @@ def create_app(config_name=None):
     # Register all application blueprints
     register_blueprints(app)
 
+    # Health check endpoint for uptime monitors & Render
+    @app.route("/health")
+    def health_check():
+        return {"status": "ok", "app": "LifeTrace-AI"}, 200
+
     # Global context processors for templates
     @app.context_processor
     def inject_global_template_data():
